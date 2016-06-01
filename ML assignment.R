@@ -27,6 +27,6 @@ rffit<-train(classe~.,data=training, method="rf",
 pred <- predict(rffit,training)
 confusionMatrix(pred,training$classe)
 
-## 
+## predict testing values for quiz
 predtst <- predict(rffit,testing)
 confusionMatrix(pred,testing$classe)
