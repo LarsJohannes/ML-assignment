@@ -1,0 +1,61 @@
+---
+title: "PML Assignment"
+output: html_document
+---
+```{r}
+
+```
+
+## Assignment
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. In this project, the goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways, indicated by the variable "classe".
+
+### Load libraries
+I am using the random forest method as part of the caret train function. 
+
+```{r packages, results="hide"}
+library(caret)
+library(ggplot2)
+library(tree)
+library(randomForest)
+```
+
+### Load data
+A quick look at the training data shows that a good number of variables has lots of empty space or contains NA. In addition, the first 6 variables contain descriptive data such as names or time stamps. This data is excluded as well.
+
+```{r load, results="hide"}
+data = read.csv("pml-training.csv", na.strings=c("NA", "#DIV/0!"))
+testing = read.csv("pml-testing.csv",  na.strings=c("NA", "#DIV/0!"))
+
+training <- data[ , colSums(is.na(data)) == 0]
+training <- training[,-c(1:6)]
+```
+
+## Analysis
+### Exploration
+
+A summary of the training variables does not provide any obvious way of forming a hypothesis of how the various variables can be combined to reduce complexity. 
+```{r summary, results="hide"}
+summary(training)
+```
+
+Test for near 0 variance to see if there is a way to reduce complexity.
+```{r nearZeroVar, results="hide"}
+nzv <- nearZeroVar(training, saveMetrics = TRUE)
+```
+
+
+### Model fitting
+Given the number of variables, lack of ways to simplify and lack of obvious ways to build a hypothesis based on the variables, I opted for a random forest appproach, using cross validation to boost the results.
+```{r model fit,results="hide"}
+rffit<-train(classe~.,data=training, method="rf", 
+             trControl= trainControl(method="cv", number=5, allowParallel=T, verbose=T), 
+             verbose=F, allowParallel=T)
+```
+
+Determine accuracy of model based on training data.
+```{r accuracy}
+pred <- predict(rffit,training)
+confusionMatrix(pred,training$classe)
+```
+This results in an accuracy of 100% and an out of sample error of 0.
+
